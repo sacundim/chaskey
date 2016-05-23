@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["cipher","The Chaskey block cipher."],["core","Core functions used to implement Chaskey."]],"struct":[["Digester","An incremental Chaskey digester.  This is a `Hasher` so you can interact with it as you would do with one of them.  Additionally you may use the `finish_128` method to get a full 128-bit tag."],["Tag","A 128-bit Chaskey tag."]]});
