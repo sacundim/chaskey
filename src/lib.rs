@@ -157,7 +157,7 @@ use util::{xor_u32x4, xor_u8x16};
 ///
 /// **WARNING:** This is a wrapper around an `[u32; 4]` in order to
 /// provide constant-time equality comparisons.  You may unwrap it if
-/// you like, but you need to be very careful what you do with, or
+/// you like, but you need to be very careful what you do with it, or
 /// otherwise you may risk a [timing
 /// attack](https://en.wikipedia.org/wiki/Timing_attack)!
 #[derive(Debug)]
@@ -230,7 +230,8 @@ fn make_keys(key: [u32; 4]) -> Keys {
 
 /// An incremental Chaskey digester.  This is a `Hasher` so you can
 /// interact with it as you would do with one of them.  Additionally
-/// you may use the `finish_128` method to get a full 128-bit tag.
+/// you may use `Digester`'s own `finish` method to get a full 128-bit
+/// `Tag`.
 pub struct Digester<P> {
     permutation: PhantomData<P>,
       keys: Keys,
