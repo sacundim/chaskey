@@ -17,15 +17,19 @@
 //! 3. The 16-round variant Chaskey-LTS (our `ChaskeyLts` type).
 //!
 //! Variants are selected by the type parameter given to the
-//! `Digester` type.  The 8-round and 12-round variants are tested
-//! with the official test vectors.  I have not found test vectors for
-//! Chaskey-LTS, but the implementation here is not wholly untested
-//! and is likely correct as well.
+//! `Digester` type.  
 //!
 //! ## Disclaimer
 //! 
 //! While Chaskey is a cryptographic algorithm, **this implementation
 //! has not been reviewed for security**.  Use at your own risk.
+//!
+//! ## Correctness
+//!
+//! The 8-round and 12-round MACs variants are tested with the
+//! official test vectors.  I have not found test vectors for the
+//! Chaskey-LTS MAC, but the FELICS project has some for its
+//! underlying **block cipher**, which I do verify.
 //!
 //! ## Examples
 //!
