@@ -1,0 +1,36 @@
+#
+# This uses the GitHub pages integration instructions from here:
+#
+# https://blog.ionelmc.ro/2015/07/11/publishing-to-github-pages-from-travis-ci/
+#
+
+language: rust
+rust:
+  - 1.8.0
+  - stable
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
+sudo: false
+before_install:
+  - mkdir -p ~/.ssh
+  - openssl aes-256-cbc -K $encrypted_1d91c890d119_key -iv $encrypted_1d91c890d119_iv -in publish-key.enc -out ~/.ssh/publish-key -d
+  - chmod u=rw,og= ~/.ssh/publish-key
+  - echo "Host github.com" >> ~/.ssh/config
+  - echo "  IdentityFile ~/.ssh/publish-key" >> ~/.ssh/config
+  - git --version
+  - git remote set-url origin git@github.com:sacundim/chaskey.git
+  - git fetch origin -f gh-pages:gh-pages
+script:
+  - cargo build --verbose
+  - cargo test --verbose
+  - cargo doc
+after_success: |
+  [ $TRAVIS_BRANCH = master ] &&
+  [ $TRAVIS_PULL_REQUEST = false ] &&
+  [ $TRAVIS_RUST_VERSION = nightly ] &&
+  echo '<meta http-equiv=refresh content=0;url=chaskey/index.html>' > target/doc/index.html &&
+  pip install ghp-import --user $USER &&
+  $HOME/.local/bin/ghp-import -n -p -m "Update gh-pages." target/doc
