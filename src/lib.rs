@@ -32,21 +32,21 @@
 //!
 //! let tag1: Tag = {
 //!     mac.write("Hello world!".as_bytes());
-//!     mac.finish_128()
+//!     mac.finish()
 //! };
 //! println!("tag1 = {}", tag1.to_hex());
 //!
 //! let tag2: Tag = {
 //!     mac.reset();
 //!     mac.write("Hello world!".as_bytes());
-//!     mac.finish_128()
+//!     mac.finish()
 //! };
 //! println!("tag2 = {}", tag2.to_hex());
 //!
 //! let tag3: Tag = {
 //!     mac.reset();
 //!     mac.write("mwahahahaha!".as_bytes());
-//!     mac.finish_128()
+//!     mac.finish()
 //! };
 //! println!("tag3 = {}", tag3.to_hex());
 //!
@@ -216,7 +216,7 @@ impl<P: Permutation> Digester<P> {
         }
     }
     
-    pub fn finish_128(&self) -> Tag {
+    pub fn finish(&self) -> Tag {
         let mut result = self.state;
         let buflen = self.i % 16;
         if buflen == 0 && self.i != 0 {
@@ -246,7 +246,7 @@ impl<P: Permutation> Hasher for Digester<P> {
     }
 
     fn finish(&self) -> u64 {
-        self.finish_128().to_u64()
+        self.finish().to_u64()
     }
 }
 
@@ -274,7 +274,7 @@ mod tests {
             let tag = {
                 hasher.reset();
                 hasher.write(&message[0..i]);
-                hasher.finish_128()
+                hasher.finish()
             };
             assert_eq!(tag, expected[i]);
         }
