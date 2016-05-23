@@ -2,6 +2,7 @@
 
 use byteorder::{ByteOrder, LittleEndian};
 
+
 /// Function used in the Chaskey key schedule.
 #[inline(always)]
 pub fn times_two(key: [u32; 4]) -> [u32; 4] {
@@ -32,28 +33,94 @@ pub fn xor_u8x16(state: &mut [u32; 4], block: &[u8; 16]) {
 }
 
 
-#[inline(always)]
-fn permute4(state: &mut [u32; 4]) {
-    round(state); round(state); 
-    round(state); round(state);
+/// A common trait implemented by the various Chaskey permutations.
+/// Chaskey processors in this library are parametrized by
+/// implementations of this trait in order to select the Chaskey
+/// variant in use.
+pub trait Permutation {
+    fn permute(state: &mut [u32; 4]);
+    fn invert(state: &mut [u32; 4]);
 }
 
 // The original Chaskey permutation (8 rounds).
-#[inline(always)]
-pub fn permute8(state: &mut [u32; 4]) {
-    permute4(state); permute4(state);
+pub enum Chaskey {}
+
+impl Permutation for Chaskey {
+    #[inline(always)]
+    fn permute(state: &mut [u32; 4]) {
+        round(state); round(state); 
+        round(state); round(state);
+        round(state); round(state); 
+        round(state); round(state);
+    }
+
+    #[inline(always)]
+    fn invert(state: &mut [u32; 4]) {
+        unround(state); unround(state); 
+        unround(state); unround(state);
+        unround(state); unround(state); 
+        unround(state); unround(state);
+    }
 }
 
-/// The Chaskey-12 permutation (12 rounds).
-#[inline(always)]
-pub fn permute12(state: &mut [u32; 4]) {
-    permute4(state); permute8(state);
+
+// The Chaskey-12 permutation (12 rounds).
+pub enum Chaskey12 {}
+
+impl Permutation for Chaskey12 {
+    #[inline(always)]
+    fn permute(state: &mut [u32; 4]) {
+        round(state); round(state); 
+        round(state); round(state);
+        round(state); round(state); 
+
+        round(state); round(state);
+        round(state); round(state); 
+        round(state); round(state);
+    }
+
+    #[inline(always)]
+    fn invert(state: &mut [u32; 4]) {
+        unround(state); unround(state); 
+        unround(state); unround(state);
+        unround(state); unround(state); 
+
+        unround(state); unround(state);
+        unround(state); unround(state); 
+        unround(state); unround(state);
+    }
 }
 
-/// The Chaskey-LTS permutation (16 rounds).
-#[inline(always)]
-pub fn permute16(state: &mut [u32; 4]) {
-    permute8(state); permute8(state);
+
+// The Chaskey-LTS permutation (16 rounds).
+pub enum ChaskeyLTS {}
+
+impl Permutation for ChaskeyLTS {
+    #[inline(always)]
+    fn permute(state: &mut [u32; 4]) {
+        round(state); round(state); 
+        round(state); round(state);
+        round(state); round(state); 
+        round(state); round(state);
+
+        round(state); round(state);
+        round(state); round(state);
+        round(state); round(state); 
+        round(state); round(state);
+    }
+
+    #[inline(always)]
+    fn invert(state: &mut [u32; 4]) {
+        unround(state); unround(state); 
+        unround(state); unround(state);
+        unround(state); unround(state); 
+        unround(state); unround(state);
+
+        unround(state); unround(state); 
+        unround(state); unround(state);
+        unround(state); unround(state); 
+        unround(state); unround(state);
+    }
 }
 
 /// The Chaskey round function.
@@ -68,31 +135,6 @@ pub fn round(v: &mut [u32; 4]) {
     v[1]  = v[1].rotate_left(7);     v[3]  = v[3].rotate_left(13);
     v[1] ^= v[2];                    v[3] ^= v[0];
     v[2]  = v[2].rotate_left(16);    
-}
-
-
-#[inline(always)]
-fn invert4(state: &mut [u32; 4]) {
-    unround(state); unround(state); 
-    unround(state); unround(state);
-}
-
-#[inline(always)]
-/// The inverse of the original Chaskey permutation (8 rounds).
-pub fn invert8(state: &mut [u32; 4]) {
-    invert4(state); invert4(state);
-}
-
-/// The inverse of the Chaskey-12 permutation (12 rounds).
-#[inline(always)]
-pub fn invert12(state: &mut [u32; 4]) {
-    invert4(state); invert8(state);
-}
-
-/// The inverse of the Chaskey-LTS permutation (16 rounds).
-#[inline(always)]
-pub fn invert16(state: &mut [u32; 4]) {
-    invert8(state); invert8(state);
 }
 
 /// The inverse of the Chaskey round function.
@@ -137,34 +179,27 @@ mod tests {
 
     #[test]
     fn permute8_invert8() {
-        fn prop(msg: Block) -> bool {
-            let mut buf = msg;
-            permute8(&mut buf.0);
-            invert8(&mut buf.0);
-            buf == msg
-        }
-        quickcheck(prop as fn(Block) -> bool);
+        permute_invert::<Chaskey>()
     }
 
     #[test]
     fn permute12_invert12() {
-        fn prop(msg: Block) -> bool {
-            let mut buf = msg;
-            permute12(&mut buf.0);
-            invert12(&mut buf.0);
-            buf == msg
-        }
-        quickcheck(prop as fn(Block) -> bool);
+        permute_invert::<Chaskey12>()
     }
 
     #[test]
     fn permute16_invert16() {
-        fn prop(msg: Block) -> bool {
+        permute_invert::<ChaskeyLTS>()
+    }
+
+    fn permute_invert<P: Permutation>() {
+        fn prop<P: Permutation>(msg: Block) -> bool {
             let mut buf = msg;
-            permute16(&mut buf.0);
-            invert16(&mut buf.0);
+            P::permute(&mut buf.0);
+            P::invert(&mut buf.0);
             buf == msg
         }
-        quickcheck(prop as fn(Block) -> bool);
+        quickcheck(prop::<P> as fn(Block) -> bool);
     }
+
 }

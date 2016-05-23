@@ -7,59 +7,29 @@
 
 use core::*;
 
-/// Encryption function for the Chaskey block cipher (8 rounds).
+
+/// Encryption function for the Chaskey block cipher, parametrized by
+/// the permutation to use.
 #[inline]
-pub fn encrypt(msg: &mut [u32; 4], key: &[u32; 4]) {
+pub fn encrypt<P: Permutation>(msg: &mut [u32; 4], key: &[u32; 4]) {
     xor_u32x4(msg, key);
-    permute8(msg);
+    P::permute(msg);
     xor_u32x4(msg, key);
 }
 
-/// Decryption function for the Chaskey block cipher (8 rounds).
+/// Decryption function for the Chaskey block cipher, parametrized by
+/// the permutation to use.
 #[inline]
-pub fn decrypt(msg: &mut [u32; 4], key: &[u32; 4]) {
+pub fn decrypt<P: Permutation>(msg: &mut [u32; 4], key: &[u32; 4]) {
     xor_u32x4(msg, key);
-    invert8(msg);
-    xor_u32x4(msg, key);
-}
-
-
-/// Encryption function for the Chaskey-12 block cipher (12 rounds).
-#[inline]
-pub fn encrypt12(msg: &mut [u32; 4], key: &[u32; 4]) {
-    xor_u32x4(msg, key);
-    permute12(msg);
-    xor_u32x4(msg, key);
-}
-
-/// Decryption function for the Chaskey-12 block cipher (12 rounds).
-#[inline]
-pub fn decrypt12(msg: &mut [u32; 4], key: &[u32; 4]) {
-    xor_u32x4(msg, key);
-    invert12(msg);
-    xor_u32x4(msg, key);
-}
-
-
-/// Encryption function for the Chaskey-LTS block cipher (16 rounds).
-#[inline]
-pub fn encrypt16(msg: &mut [u32; 4], key: &[u32; 4]) {
-    xor_u32x4(msg, key);
-    permute16(msg);
-    xor_u32x4(msg, key);
-}
-
-/// Decryption function for the Chaskey-LTS block cipher (16 rounds).
-#[inline]
-pub fn decrypt16(msg: &mut [u32; 4], key: &[u32; 4]) {
-    xor_u32x4(msg, key);
-    invert16(msg);
+    P::invert(msg);
     xor_u32x4(msg, key);
 }
 
 
 #[cfg(test)]
 mod tests {    
+    use core::*;
     use super::*;
     use quickcheck::{Arbitrary, Gen, quickcheck};
 
@@ -72,36 +42,29 @@ mod tests {
         }
     }
 
-    #[test]
-    fn encrypt_decrypt() {
-        fn prop(msg: Block, key: Block) -> bool {
+    fn encrypt_decrypt<P: Permutation>() {
+        fn prop<P: Permutation>(msg: Block, key: Block) -> bool {
             let mut buf = msg;
-            encrypt(&mut buf.0, &key.0);
-            decrypt(&mut buf.0, &key.0);
+            encrypt::<P>(&mut buf.0, &key.0);
+            decrypt::<P>(&mut buf.0, &key.0);
             buf == msg
         }
-        quickcheck(prop as fn(Block, Block) -> bool);
+        quickcheck(prop::<P> as fn(Block, Block) -> bool);
+    }
+
+    #[test]
+    fn encrypt_decrypt8() {
+        encrypt_decrypt::<Chaskey>();
     }
 
     #[test]
     fn encrypt12_decrypt12() {
-        fn prop(msg: Block, key: Block) -> bool {
-            let mut buf = msg;
-            encrypt12(&mut buf.0, &key.0);
-            decrypt12(&mut buf.0, &key.0);
-            buf == msg
-        }
-        quickcheck(prop as fn(Block, Block) -> bool);
+        encrypt_decrypt::<Chaskey12>();
     }
 
     #[test]
     fn encrypt16_decrypt16() {
-        fn prop(msg: Block, key: Block) -> bool {
-            let mut buf = msg;
-            encrypt16(&mut buf.0, &key.0);
-            decrypt16(&mut buf.0, &key.0);
-            buf == msg
-        }
-        quickcheck(prop as fn(Block, Block) -> bool);
+        encrypt_decrypt::<ChaskeyLTS>();
     }
+
 }

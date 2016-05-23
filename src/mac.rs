@@ -1,5 +1,6 @@
 use core::*;
 use std::hash::Hasher;
+use std::marker::PhantomData;
 
 /// A Chaskey key schedule.
 #[derive(Clone, Copy)]
@@ -62,23 +63,25 @@ impl PartialEq for Tag {
 /// An incremental Chaskey digester.  This is a `Hasher` so you can
 /// interact with it as you would do with one of them.  Additionally
 /// you may use the `finish_128` method to get a full 128-bit tag.
-#[derive(Clone)]
-pub struct Chaskey {
-     keys: Keys,
-    state: [u32; 4],
-      buf: [u8; 16],
-        i: usize
+pub struct Digester<P> {
+    permutation: PhantomData<P>,
+      keys: Keys,
+     state: [u32; 4],
+       buf: [u8; 16],
+         i: usize
 }
 
-impl Chaskey {
-    /// Initialize a new Chaskey digester with the given key.
-    pub fn new(key: [u32; 4]) -> Chaskey {
+impl<P: Permutation> Digester<P> {
+    /// Initialize a new Digester (8 rounds) digester with the given
+    /// key.
+    pub fn new(key: [u32; 4]) -> Digester<P> {
         let keys = make_keys(key);
-        Chaskey {
-             keys: keys,
-            state: key,
-              buf: [0u8; 16],
-                i: 0
+        Digester {
+            permutation: PhantomData,
+              keys: keys,
+             state: key,
+               buf: [0u8; 16],
+                 i: 0
         }
     }
 
@@ -96,7 +99,7 @@ impl Chaskey {
         for byte in bytes.iter() {
             if self.i % 16 == 0 && self.i != 0 {
                 xor_u8x16(&mut self.state, &self.buf);
-                permute8(&mut self.state);
+                P::permute(&mut self.state);
             }
             self.buf[self.i % 16] = *byte;
             self.i += 1;
@@ -109,7 +112,7 @@ impl Chaskey {
         if buflen == 0 && self.i != 0 {
             xor_u8x16(&mut result, &self.buf);
             xor_u32x4(&mut result, &self.keys.k1);
-            permute8(&mut result);
+            P::permute(&mut result);
             xor_u32x4(&mut result, &self.keys.k1);
         } else {
             let mut last = [0u8; 16];
@@ -119,7 +122,7 @@ impl Chaskey {
             last[buflen] = 0x01;
             xor_u8x16(&mut result, &last);
             xor_u32x4(&mut result, &self.keys.k2);
-            permute8(&mut result);
+            P::permute(&mut result);
             xor_u32x4(&mut result, &self.keys.k2);
         }
         Tag(result)
@@ -127,9 +130,9 @@ impl Chaskey {
 
 }
 
-impl Hasher for Chaskey {
+impl<P: Permutation> Hasher for Digester<P> {
     fn write(&mut self, bytes: &[u8]) {
-        Chaskey::write(self, bytes);
+        Digester::write(self, bytes);
     }
 
     fn finish(&self) -> u64 {
@@ -137,13 +140,24 @@ impl Hasher for Chaskey {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
-    use super::{Chaskey, Tag};
+    use core::*;
+    use super::{Digester, Tag};
 
     #[test]
-    fn test_incremental() {
-        let mut hasher = Chaskey::new(KEY);
+    fn test_incremental_8() {
+        test_incremental::<Chaskey>(&TEST_VECTORS_8);
+    }
+
+    #[test]
+    fn test_incremental_12() {
+        test_incremental::<Chaskey12>(&TEST_VECTORS_12);
+    }
+
+    fn test_incremental<P: Permutation>(expected: &[Tag; 64]) {
+        let mut hasher: Digester<P> = Digester::new(KEY);
         let mut message: [u8; 64] = [0u8; 64];
         for i in 0..64 {
             message[i] = i as u8;
@@ -152,14 +166,13 @@ mod tests {
                 hasher.write(&message[0..i]);
                 hasher.finish_128()
             };
-            println!("Iteration = {}", i);
-            assert_eq!(tag, TEST_VECTORS[i]);
+            assert_eq!(tag, expected[i]);
         }
     }
 
     const KEY: [u32; 4] = [0x833D3433, 0x009F389F, 0x2398E64F, 0x417ACF39];
 
-    const TEST_VECTORS: [Tag; 64] = [
+    const TEST_VECTORS_8: [Tag; 64] = [
         Tag([0x792E8FE5, 0x75CE87AA, 0x2D1450B5, 0x1191970B]),
         Tag([0x13A9307B, 0x50E62C89, 0x4577BD88, 0xC0BBDC18]),
         Tag([0x55DF8922, 0x2C7FF577, 0x73809EF4, 0x4E5084C0]),
@@ -224,6 +237,73 @@ mod tests {
         Tag([0xEBF39102, 0x8F4C1708, 0x519D2F36, 0xC67C5437]),
         Tag([0x89A0D454, 0x9201A282, 0xEA1B1E50, 0x1771BEDC]),
         Tag([0x9047FAD7, 0x88136D8C, 0xA488286B, 0x7FE9352C])
+    ];
+
+    const TEST_VECTORS_12: [Tag; 64] = [
+        Tag([0x43CB1F41, 0x51EBA0C2, 0xFF0A8AC3, 0x7EE3F642]),
+        Tag([0xF9AC2067, 0x9C35A846, 0x441AAD3D, 0x777B7330]),
+        Tag([0x57DA70C5, 0x2A873CB0, 0x19EE8B2A, 0x165CD82E]),
+        Tag([0x8C5E6AB9, 0x5035ADFB, 0xBFF69F98, 0x965516D9]),
+        Tag([0x0B2B62DB, 0x1E9E3F50, 0xA1B8DCAD, 0xB4279AE0]),
+        Tag([0x39FA92B9, 0x1B655E4F, 0x5E4A4667, 0x0FE13365]),
+        Tag([0x7C814DEC, 0x149F38A0, 0x270046B9, 0xFB954C27]),
+        Tag([0xB7D29CB8, 0x40A2819D, 0xAE403CDB, 0x6FBEFA95]),
+        Tag([0x9FAF57D6, 0xF4BC02CF, 0x6AF6D831, 0xD2930D90]),
+        Tag([0x8417124D, 0x552889A7, 0x35D716F0, 0xE04632A6]),
+        Tag([0xDEA5BA76, 0x741D87ED, 0x72CFEF1A, 0x91749FC9]),
+        Tag([0x6A888831, 0x8679ED53, 0x8A192E58, 0x58B23BD1]),
+        Tag([0xC040258C, 0xF25392C0, 0x9F6B5DC0, 0x35C3D638]),
+        Tag([0x7FEBA9C3, 0x585DA8E9, 0x7680BE51, 0x9FB8FC6E]),
+        Tag([0xC133C9C0, 0x55DF75B5, 0x0F18F729, 0x99B9837E]),
+        Tag([0x03CFB44B, 0x283C8163, 0xFCA71448, 0xC40A0AEA]),
+        Tag([0x5DD0E2A9, 0xFB5EAC8C, 0x633A392E, 0x500C36F3]),
+        Tag([0x8B5F6D5A, 0x202314F6, 0x22092368, 0x9639E606]),
+        Tag([0x0430889E, 0xB994DC9C, 0xA39D8D46, 0xF0B15FDA]),
+        Tag([0x426CA8DD, 0x9DA954C9, 0x613290FC, 0x9AEBE7E9]),
+        Tag([0xECE3BDB9, 0x17E5A589, 0x64AA2EEF, 0x9A75ECED]),
+        Tag([0xEFDDD3D7, 0xBE458309, 0xD430468E, 0x44C17D41]),
+        Tag([0x440809BA, 0x87C9512B, 0xE495C3B6, 0x3601D81D]),
+        Tag([0x0B1DB893, 0x05300791, 0x5E789C3B, 0x4BBE102A]),
+        Tag([0x9F01C148, 0xAE4FC446, 0x6563E38E, 0xD5483B99]),
+        Tag([0x9AC00551, 0x80C778DA, 0xD894CE35, 0x56598BCB]),
+        Tag([0x3ABB0B87, 0x3E0FBB0E, 0x7635D502, 0xC913C4EC]),
+        Tag([0xC5CFBFFF, 0x6C52AE42, 0x025D402A, 0xC154FCE1]),
+        Tag([0x76D1EB98, 0x8C72085A, 0x77155006, 0xBF389002]),
+        Tag([0x7CB65A88, 0x5E7C9B65, 0xD5C24284, 0xBD64DEFE]),
+        Tag([0xC082B077, 0x8E22EA68, 0xBFD34969, 0x0418D7DA]),
+        Tag([0x1D3D30B1, 0x01D74FCA, 0x3B2EB54C, 0xD8CD36B4]),
+        Tag([0x77962784, 0x07C647FA, 0xDD752C0F, 0xD2F5A799]),
+        Tag([0xD74BB867, 0x2C0DFB3A, 0xB697E9CD, 0x5658EDDA]),
+        Tag([0x4CDDF615, 0xEF51F2F3, 0xB254B4AE, 0xFDAB76D9]),
+        Tag([0x7567E1CA, 0xF2379487, 0x75082E35, 0x463F164D]),
+        Tag([0xA98ECB80, 0x5EF583CF, 0x4E20E76E, 0x7873B8F1]),
+        Tag([0x1446E9AA, 0x1BE1EC9B, 0x1D475DE5, 0xA82C5D00]),
+        Tag([0x11D3A094, 0xC43D33FA, 0xD33D6C42, 0xD6604682]),
+        Tag([0x3B09C785, 0x867BEA15, 0x1E05031D, 0xBC4C8072]),
+        Tag([0x155AB3AB, 0x73D51ED7, 0xAC6F3601, 0xEF6AA85C]),
+        Tag([0x28E86031, 0xDCEB8B32, 0x63B1D172, 0xA4B65AC7]),
+        Tag([0xF02660F5, 0x6EB38FF8, 0x6AF8730C, 0x0694B77C]),
+        Tag([0x3A3806A1, 0x54161686, 0x437B82F2, 0x541CDC9D]),
+        Tag([0x4BDFFF32, 0xB258591A, 0x26AD161B, 0xE3445E89]),
+        Tag([0xEEDEBC62, 0xE9F9DE19, 0x252E8047, 0x553411A2]),
+        Tag([0xA7AEBC31, 0xC10AD12E, 0x85B25FA0, 0x6DD54E7F]),
+        Tag([0x8494B5BC, 0x5317B7B3, 0xCFE08756, 0x97A2D14E]),
+        Tag([0xF36E748B, 0x8F34677F, 0x1E00BA1B, 0xDD7DA46D]),
+        Tag([0xF9F4055F, 0xAF76AC88, 0x45DA034C, 0xF1C04C8A]),
+        Tag([0x6F486CFD, 0x72653E7D, 0xE597059C, 0x03A1580D]),
+        Tag([0x54080FC5, 0xC9E98B24, 0x3C9EDE0F, 0x79CAB6BA]),
+        Tag([0x4EC246AA, 0x01EDAAB3, 0xBFE09C48, 0x7C5C4C45]),
+        Tag([0xFFD828F3, 0xE8875C0C, 0x18CE432D, 0xC42DA43A]),
+        Tag([0x9C45CFF1, 0x1A38A387, 0xA7FBCB03, 0x41649EF5]),
+        Tag([0x31C29F70, 0xD6E4DD76, 0x03562D6F, 0x902E3DF6]),
+        Tag([0x9AB66191, 0x7DAF7DFF, 0x868090AE, 0x35B7D6C6]),
+        Tag([0x4D569CCA, 0x7F53FED2, 0x16525A72, 0xFAB67A70]),
+        Tag([0x08EC0D1E, 0xC96855B8, 0xEE9E3842, 0xDD3C6CD6]),
+        Tag([0xE70DFFB1, 0x74FAD311, 0xEF723024, 0xB6C2B5C6]),
+        Tag([0xA8F07A68, 0x366FC33B, 0xAF00EEFB, 0x1A48A9DF]),
+        Tag([0x079E0279, 0xF6C252F7, 0xE99E3E03, 0x88BA1A2A]),
+        Tag([0x0F40ED0F, 0xA69BC80F, 0x8E06F97C, 0x61E89697]),
+        Tag([0x2DD072E1, 0x42B89EFE, 0xFB26B615, 0x049AA451])
     ];
 }
 
