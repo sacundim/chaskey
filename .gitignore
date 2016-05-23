@@ -1,3 +1,5 @@
 *~
 target
 Cargo.lock
+publish-key
+publish-key.pub
