@@ -23,7 +23,10 @@ pub fn make_keys(key: [u32; 4]) -> Keys {
 /// A 128-bit Chaskey tag.
 ///
 /// **WARNING:** This is a wrapper around an `[u32; 4]` in order to
-/// provide constant-time equality comparisons.
+/// provide constant-time equality comparisons.  You may unwrap it if
+/// you like, but you need to be very careful what you do with, or
+/// otherwise you may risk a [timing
+/// attack](https://en.wikipedia.org/wiki/Timing_attack)!
 #[derive(Eq, Debug)]
 pub struct Tag([u32; 4]);
 
