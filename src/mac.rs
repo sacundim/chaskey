@@ -1,6 +1,8 @@
-use core::*;
+pub use core::{Chaskey, Chaskey12, ChaskeyLTS};
+use core::{times_two, Permutation};
 use std::hash::Hasher;
 use std::marker::PhantomData;
+use util::{xor_u32x4, xor_u8x16};
 
 /// A Chaskey key schedule.
 #[derive(Clone, Copy)]

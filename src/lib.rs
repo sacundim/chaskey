@@ -23,4 +23,4 @@ extern crate quickcheck;
 pub mod cipher;
 pub mod core;
 pub mod mac;
-
+mod util;

@@ -5,7 +5,8 @@
 //! * [Notes at the CryptoLux
 //! website](https://www.cryptolux.org/index.php/Lightweight_Block_Ciphers#Chaskey_Cipher).
 
-use core::*;
+pub use core::*;
+use util::xor_u32x4;
 
 
 /// Encryption function for the Chaskey block cipher, parametrized by
@@ -30,7 +31,7 @@ pub fn decrypt<P: Permutation>(msg: &mut [u32; 4], key: &[u32; 4]) {
 #[cfg(test)]
 mod tests {    
     use core::*;
-    use super::*;
+    use super::{encrypt, decrypt};
     use quickcheck::{Arbitrary, Gen, quickcheck};
 
     #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -53,7 +54,7 @@ mod tests {
     }
 
     #[test]
-    fn encrypt_decrypt8() {
+    fn encrypt8_decrypt8() {
         encrypt_decrypt::<Chaskey>();
     }
 
