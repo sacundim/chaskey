@@ -29,13 +29,15 @@
 //!
 //! ## Examples
 //!
+//! Using the basic (8 round) Chaskey variant:
+//!
 //! ```
 //! # extern crate chaskey;
 //! # extern crate rand;
-//! # extern crate rustc_serialize as serialize;
+//! # extern crate rustc_serialize;
 //! use chaskey::{Digester, Chaskey, Tag};
 //! use rand::{Rng, OsRng};
-//! use serialize::hex::ToHex;
+//! use rustc_serialize::hex::ToHex;
 //! 
 //! # fn main() {
 //! let mut rng: OsRng = OsRng::new().unwrap();
@@ -67,6 +69,50 @@
 //! // timing attacks.  Tread carefully!
 //! assert!(tag1 == tag2);
 //! assert!(tag2 != tag3);
+//! # }
+//! ```
+//!
+//! To use the Chaskey-12 or Chaskey-LTS variants you just change the type
+//! parameter to the `Digester`:
+//!
+//! ```
+//! # extern crate chaskey;
+//! # extern crate rand;
+//! # extern crate rustc_serialize;
+//! use chaskey::{Digester, Chaskey, Chaskey12, ChaskeyLTS, Tag};
+//! use rand::{Rng, OsRng};
+//! use rustc_serialize::hex::ToHex;
+//! 
+//! # fn main() {
+//! let mut rng: OsRng = OsRng::new().unwrap();
+//! let key: [u32; 4] = rng.gen();
+//!
+//! let tag1: Tag = {
+//!     // Note the `Chaskey` type parameter here:
+//!     let mut mac: Digester<Chaskey> = Digester::new(key);
+//!     mac.write("Hello world!".as_bytes());
+//!     mac.finish()
+//! };
+//! println!("tag1 = {}", tag1.to_hex());
+//!
+//! let tag2: Tag = {
+//!     // Note the `Chaskey12` type parameter here:
+//!     let mut mac: Digester<Chaskey12> = Digester::new(key);
+//!     mac.write("Hello world!".as_bytes());
+//!     mac.finish()
+//! };
+//! println!("tag2 = {}", tag2.to_hex());
+//!
+//! let tag3: Tag = {
+//!     // Note the `ChaskeyLTS` type parameter here:
+//!     let mut mac: Digester<ChaskeyLTS> = Digester::new(key);
+//!     mac.write("Hello world!".as_bytes());
+//!     mac.finish()
+//! };
+//! println!("tag3 = {}", tag3.to_hex());
+//! # assert!(tag1 != tag2);
+//! # assert!(tag1 != tag3);
+//! # assert!(tag2 != tag3);
 //! # }
 //! ```
 //!
