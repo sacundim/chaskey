@@ -35,13 +35,14 @@ impl Tag {
     /// variable-time comparisons of these arrays may expose you to
     /// timing attacks**; stick to comparing the `Tag` wrappers if you
     /// can.
-    pub fn raw_value(&self) -> &[u32; 4] {
+    pub fn raw_words(&self) -> &[u32; 4] {
         &self.0
     }
 
     pub fn to_u64(&self) -> u64 {
         (self.0[0] as u64) | (self.0[1] as u64).wrapping_shl(32)
     }
+
 }
 
 impl PartialEq for Tag {
@@ -59,6 +60,7 @@ impl PartialEq for Tag {
 /// An incremental Chaskey digester.  This is a `Hasher` so you can
 /// interact with it as you would do with one of them.  Additionally
 /// you may use the `finish_128` method to get a full 128-bit tag.
+#[derive(Clone)]
 pub struct Chaskey {
      keys: Keys,
     state: [u32; 4],
