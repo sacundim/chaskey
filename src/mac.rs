@@ -55,52 +55,6 @@ impl PartialEq for Tag {
     }
 }
 
-/// The raw `chaskey` function, which processes a message all at once.
-pub fn chaskey(keys: Keys, msg: &[u8]) -> Tag {
-    let mut state = keys.key;
-    let mut buf = [0u8; 16];
-    let (prefix, last) = 
-        if msg.len() <= 16 {
-            (&[][..], msg)
-        } else if msg.len() % 16 == 0 {
-            msg.split_at(msg.len() - 16)
-        } else {
-            msg.split_at(msg.len() - (msg.len() % 16))
-        };
-
-    for chunk in prefix.chunks(16) {
-        for i in 0..16 {
-            buf[i] = chunk[i];
-        }
-        merge_u8x16(&mut state, &buf);
-        permute8(&mut state);
-    }
-    if last.len() == 16 {
-        for i in 0..16 {
-            buf[i] = last[i];
-        }
-        merge_u8x16(&mut state, &buf);
-        merge_u32x4(&mut state, &keys.k1);
-        permute8(&mut state);
-        merge_u32x4(&mut state, &keys.k1);
-    } else if last.len() < 16 {
-        for i in 0..last.len() {
-            buf[i] = last[i];
-        }
-        buf[last.len()] = 0x01;
-        for i in (last.len()+1)..16 {
-            buf[i] = 0;
-        }
-        merge_u8x16(&mut state, &buf);
-        merge_u32x4(&mut state, &keys.k2);
-        permute8(&mut state);
-        merge_u32x4(&mut state, &keys.k2);
-    } else {
-        panic!("BUG: Last block's length was more than 16");
-    }
-    Tag(state)
-}
-
 
 /// An incremental Chaskey digester.  This is a `Hasher` so you can
 /// interact with it as you would do with one of them.  Additionally
@@ -197,19 +151,7 @@ fn merge_u8x16(state: &mut [u32; 4], block: &[u8; 16]) {
 
 #[cfg(test)]
 mod tests {
-    use super::{chaskey, make_keys, Chaskey, Tag};
-
-    #[test]
-    fn test_oneshot() {
-        let mut message: [u8; 64] = [0u8; 64];
-        let keys = make_keys(KEY);
-        for i in 0..64 {
-            message[i] = i as u8;
-            let tag = chaskey(keys, &message[0..i]);
-            println!("Iteration = {}", i);
-            assert_eq!(tag, TEST_VECTORS[i]);
-        }
-    }
+    use super::{Chaskey, Tag};
 
     #[test]
     fn test_incremental() {
