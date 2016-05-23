@@ -1,9 +1,9 @@
-//! Core functions used to implement Chaskey.
-
+//! Core functions used to implement Chaskey.  These are documented in
+//! the Chaskey papers, so they're only half-internal.
 
 /// Function used in the Chaskey key schedule.
 #[inline(always)]
-pub fn times_two(key: [u32; 4]) -> [u32; 4] {
+pub fn times_two(key: &[u32; 4]) -> [u32; 4] {
     const C: [u32; 2] = [0x00, 0x87];
     [key[0].wrapping_shl(1) ^ C[key[3].wrapping_shr(31) as usize],
      key[1].wrapping_shl(1) ^ key[0].wrapping_shr(31),
@@ -41,15 +41,21 @@ pub fn unround(v: &mut [u32; 4]) {
 
 
 
-/// A specific Chaskey permutation.  Chaskey processors in this
-/// library are parametrized by implementations of this trait in order
-/// to select the variant of Chaskey to use.
+/// A Chaskey permutation.  Chaskey processors in this library are
+/// parametrized by implementations of this trait in order to select
+/// the variant of Chaskey to use.
+///
+/// Note that the implementations of this type are empty enums;
+/// they're only used at the type level.
 pub trait Permutation {
     fn permute(state: &mut [u32; 4]);
     fn invert(state: &mut [u32; 4]);
 }
 
-// The original Chaskey permutation (8 rounds).
+/// The original Chaskey permutation (8 rounds).
+///
+/// Note that this type is an empty enum; it's only used at the type
+/// level.
 pub enum Chaskey {}
 
 impl Permutation for Chaskey {
@@ -71,7 +77,10 @@ impl Permutation for Chaskey {
 }
 
 
-// The Chaskey-12 permutation (12 rounds).
+/// The Chaskey-12 permutation (12 rounds).
+///
+/// Note that this type is an empty enum; it's only used at the type
+/// level.
 pub enum Chaskey12 {}
 
 impl Permutation for Chaskey12 {
@@ -99,7 +108,10 @@ impl Permutation for Chaskey12 {
 }
 
 
-// The Chaskey-LTS permutation (16 rounds).
+/// The Chaskey-LTS permutation (16 rounds).
+///
+/// Note that this type is an empty enum; it's only used at the type
+/// level.
 pub enum ChaskeyLTS {}
 
 impl Permutation for ChaskeyLTS {

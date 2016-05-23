@@ -152,8 +152,8 @@ struct Keys {
 
 /// Construct the Chaskey key schedule from the given key.
 fn make_keys(key: [u32; 4]) -> Keys {
-    let k1: [u32; 4] = times_two(key);
-    let k2: [u32; 4] = times_two(k1);
+    let k1: [u32; 4] = times_two(&key);
+    let k2: [u32; 4] = times_two(&k1);
     Keys {
         key: key,
         k1: k1,
