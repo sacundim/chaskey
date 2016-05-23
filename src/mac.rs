@@ -45,7 +45,7 @@ impl Tag {
     }
 
     pub fn to_u64(&self) -> u64 {
-        (self.0[0] as u64) | (self.0[1] as u64).wrapping_shl(32)
+        (self.0[3] as u64) | (self.0[4] as u64).wrapping_shl(32)
     }
 
 }
