@@ -3,12 +3,17 @@
 //!
 //! This crate supports three variants of Chaskey:
 //!
-//! 1. The original (8-round) algoritm (our `Chaskey` type);
+//! 1. The original (8-round) algorithm (our `Chaskey` type);
 //! 2. The 12-round variant Chaskey-12 (our `Chaskey12` type);
 //! 3. The 16-round variant Chaskey-LTS (our `ChaskeyLts` type).
 //!
 //! Variants are selected by the type parameter given to the
 //! `Digester` type.
+//!
+//! ## Disclaimer
+//! 
+//! While Chaskey is a cryptographic algorithm, **this implementation
+//! has not been reviewed for security**.  Use at your own risk.
 //!
 //! ## Examples
 //!
@@ -46,19 +51,19 @@
 //! println!("tag3 = {}", tag3.to_hex());
 //!
 //! // Note that the `Tag` type does constant-time equality
-//! // comparisons (or at least it tries to).
+//! // comparisons (or at least it tries to), so as to avoid
+//! // timing attacks.  Tread carefully!
 //! assert!(tag1 == tag2);
 //! assert!(tag2 != tag3);
 //! # }
 //! ```
 //!
-//! ## Disclaimer
-//! 
-//! While Chaskey is a cryptographic algorithm, **this implementation
-//! has not been reviewed for security**.  Use at your own risk.
-//!
 //! ## References
 //!
+//! * FELICS Project, Université de Luxembourg.  [*FELICS: Fair
+//!   Evauation of Lightweight Cryptographic
+//!   Systems.*](https://www.cryptolux.org/index.php/FELICS) Web site
+//!   accessed May 2016.
 //! * Mouha, Nicky, Bart Mennik, Anthony Van Herrewege, Dai Watanabe,
 //!   Bart Preneet and Ingrid Verbauwhede.  2014.  ["Chaskey: An
 //!   Efficient MAC Algorithm for 32-bit
@@ -66,7 +71,10 @@
 //!   Cryptology ePrint Archive, Report 2014/386.
 //! * Mouha, Nicky.  2015.  ["Chaskey: a MAC Algorithm for
 //!   Microcontrollers: Status Update and Proposal of
-//!   Chaskey-12."](http://eprint.iacr.org/2015/1182.pdf)  
+//!   Chaskey-12."](http://eprint.iacr.org/2015/1182.pdf) Cryptology
+//!   ePrint Archive, Report 2015/1182.
+//! * Mouha, Nicky.  ["Chaskey."](http://mouha.be/chaskey/) Web page,
+//!   accessed May 2016.
 
 extern crate byteorder;
 extern crate rustc_serialize as serialize;

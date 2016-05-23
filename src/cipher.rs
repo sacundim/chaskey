@@ -1,5 +1,8 @@
-//! The Chaskey block cipher.  The Chaskey MAC is, conceptually,
-//! constructed in terms of this cipher.
+//! The Chaskey block cipher.  
+//!
+//! The Chaskey MAC is, conceptually, constructed from this cipher,
+//! and the security proofs for the MAC appeal to the cipher's
+//! properties.
 //!
 //! ## Disclaimer
 //!

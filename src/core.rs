@@ -1,5 +1,7 @@
-//! Core functions used to implement Chaskey.  These are documented in
-//! the Chaskey papers, so they're only half-internal.
+//! Core functions used to implement Chaskey.  
+//!
+//! At first glance some of these may appear to be internal, but they
+//! are documented in the Chaskey papers, so they're worth exporting.
 
 /// Function used in the Chaskey key schedule.
 #[inline(always)]
@@ -39,11 +41,9 @@ pub fn unround(v: &mut [u32; 4]) {
     v[0]  = v[0].wrapping_sub(v[1]); v[2]  = v[2].wrapping_sub(v[3]);
 }
 
-
-
-/// A Chaskey permutation.  Chaskey processors in this library are
-/// parametrized by implementations of this trait in order to select
-/// the variant of Chaskey to use.
+/// Chaskey processors in this library are parametrized by
+/// implementations of this trait in order to select the variant of
+/// Chaskey to use.
 ///
 /// Note that the implementations of this type are empty enums;
 /// they're only used at the type level.
