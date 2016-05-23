@@ -1,5 +1,60 @@
+//! The Chaskey MAC (message authentication code).
+//!
+//! This code supports three variants of Chaskey:
+//!
+//! 1. The original (8-round) Chaskey (`Chaskey`);
+//! 2. The 12-round variant Chaskey-12;
+//! 3. The 16-round variant Chaskey-LTS.
+//!
+//! Variants are selected by the type parameter given to the
+//! `Digester` type.
+//!
+//! ## Examples
+//!
+//! ```
+//! # extern crate chaskey;
+//! # extern crate rand;
+//! # extern crate rustc_serialize as serialize;
+//! use chaskey::mac::{Digester, Chaskey, Tag};
+//! use rand::{Rng, OsRng};
+//! use serialize::hex::ToHex;
+//! 
+//! # fn main() {
+//! let mut rng: OsRng = OsRng::new().unwrap();
+//! let key: [u32; 4] = rng.gen();
+//! let mut mac: Digester<Chaskey> = Digester::new(key);
+//!
+//! let tag1: Tag = {
+//!     mac.write("Hello world!".as_bytes());
+//!     mac.finish_128()
+//! };
+//! println!("tag1 = {}", tag1.to_hex());
+//!
+//! let tag2: Tag = {
+//!     mac.reset();
+//!     mac.write("Hello world!".as_bytes());
+//!     mac.finish_128()
+//! };
+//! println!("tag2 = {}", tag2.to_hex());
+//!
+//! let tag3: Tag = {
+//!     mac.reset();
+//!     mac.write("mwahahahaha!".as_bytes());
+//!     mac.finish_128()
+//! };
+//! println!("tag3 = {}", tag3.to_hex());
+//!
+//! // Note that the `Tag` type does constant-time equality
+//! // comparisons (or at least it tries to).
+//! assert!(tag1 == tag2);
+//! assert!(tag2 != tag3);
+//! # }
+//! ```
+
+use byteorder::{ByteOrder, LittleEndian};
 pub use core::{Chaskey, Chaskey12, ChaskeyLTS};
 use core::{times_two, Permutation};
+use serialize::hex::ToHex;
 use std::hash::Hasher;
 use std::marker::PhantomData;
 use util::{xor_u32x4, xor_u8x16};
@@ -30,7 +85,7 @@ pub fn make_keys(key: [u32; 4]) -> Keys {
 /// you like, but you need to be very careful what you do with, or
 /// otherwise you may risk a [timing
 /// attack](https://en.wikipedia.org/wiki/Timing_attack)!
-#[derive(Eq, Debug)]
+#[derive(Debug)]
 pub struct Tag([u32; 4]);
 
 impl Tag {
@@ -48,16 +103,32 @@ impl Tag {
         (self.0[3] as u64) | (self.0[4] as u64).wrapping_shl(32)
     }
 
+    pub fn raw_bytes(&self) -> [u8; 16] {
+        let mut result = [0u8; 16];
+        LittleEndian::write_u32(&mut result[0..4], self.0[0]);
+        LittleEndian::write_u32(&mut result[4..8], self.0[1]);
+        LittleEndian::write_u32(&mut result[8..12], self.0[2]);
+        LittleEndian::write_u32(&mut result[12..16], self.0[3]);
+        result
+    }
 }
 
 impl PartialEq for Tag {
     fn eq(&self, other: &Tag) -> bool {
         let mut result = true;
-        result |= self.0[0] == other.0[0];
-        result |= self.0[1] == other.0[1];
-        result |= self.0[2] == other.0[2];
-        result |= self.0[3] == other.0[3];
+        result &= self.0[0] == other.0[0];
+        result &= self.0[1] == other.0[1];
+        result &= self.0[2] == other.0[2];
+        result &= self.0[3] == other.0[3];
         result
+    }
+}
+
+impl Eq for Tag { }
+
+impl ToHex for Tag {
+    fn to_hex(&self) -> String {
+        self.raw_bytes().to_hex()
     }
 }
 

@@ -7,6 +7,8 @@ description = "The Chaskey message authentication code (MAC)."
 
 [dependencies]
 byteorder = "0.5"
+rustc-serialize = "0.3.19"
 
 [dev-dependencies]
 quickcheck = "0.2"
+rand = "0.3.14"

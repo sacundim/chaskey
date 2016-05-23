@@ -16,9 +16,9 @@
 //!   Chaskey-12."](http://eprint.iacr.org/2015/1182.pdf)  
 
 extern crate byteorder;
-
 #[cfg(test)]
 extern crate quickcheck;
+extern crate rustc_serialize as serialize;
 
 pub mod cipher;
 pub mod core;
