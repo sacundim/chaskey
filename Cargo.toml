@@ -7,3 +7,6 @@ description = "The Chaskey message authentication code (MAC)."
 
 [dependencies]
 byteorder = "0.5"
+
+[dev-dependencies]
+quickcheck = "0.2"

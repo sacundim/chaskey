@@ -1,4 +1,3 @@
-use byteorder::{ByteOrder, LittleEndian};
 use core::*;
 use std::hash::Hasher;
 
@@ -93,7 +92,7 @@ impl Chaskey {
     pub fn write(&mut self, bytes: &[u8]) {
         for byte in bytes.iter() {
             if self.i % 16 == 0 && self.i != 0 {
-                merge_u8x16(&mut self.state, &self.buf);
+                xor_u8x16(&mut self.state, &self.buf);
                 permute8(&mut self.state);
             }
             self.buf[self.i % 16] = *byte;
@@ -105,20 +104,20 @@ impl Chaskey {
         let mut result = self.state;
         let buflen = self.i % 16;
         if buflen == 0 && self.i != 0 {
-            merge_u8x16(&mut result, &self.buf);
-            merge_u32x4(&mut result, &self.keys.k1);
+            xor_u8x16(&mut result, &self.buf);
+            xor_u32x4(&mut result, &self.keys.k1);
             permute8(&mut result);
-            merge_u32x4(&mut result, &self.keys.k1);
+            xor_u32x4(&mut result, &self.keys.k1);
         } else {
             let mut last = [0u8; 16];
             for i in 0..buflen {
                 last[i] = self.buf[i];
             }
             last[buflen] = 0x01;
-            merge_u8x16(&mut result, &last);
-            merge_u32x4(&mut result, &self.keys.k2);
+            xor_u8x16(&mut result, &last);
+            xor_u32x4(&mut result, &self.keys.k2);
             permute8(&mut result);
-            merge_u32x4(&mut result, &self.keys.k2);
+            xor_u32x4(&mut result, &self.keys.k2);
         }
         Tag(result)
     }
@@ -134,22 +133,6 @@ impl Hasher for Chaskey {
         self.finish_128().to_u64()
     }
 }
-
-#[inline]
-fn merge_u32x4(state: &mut [u32; 4], block: &[u32; 4]) {
-    state[0] ^= block[0];
-    state[1] ^= block[1];
-    state[2] ^= block[2];
-    state[3] ^= block[3];
-}
-
-fn merge_u8x16(state: &mut [u32; 4], block: &[u8; 16]) {
-    state[0] ^= LittleEndian::read_u32(&block[0..4]);
-    state[1] ^= LittleEndian::read_u32(&block[4..8]);
-    state[2] ^= LittleEndian::read_u32(&block[8..12]);
-    state[3] ^= LittleEndian::read_u32(&block[12..16]);
-}
-
 
 #[cfg(test)]
 mod tests {
