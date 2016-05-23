@@ -1,14 +1,26 @@
 //! The [Chaskey](http://mouha.be/chaskey/) lightweight message
 //! authentication code (MAC).
 //!
-//! This crate supports three variants of Chaskey:
+//! Chaskey is a lightweight message authentication code (MAC)
+//! designed for 32-bit microcontrollers.  It has some resemblances to
+//! the better-known [SipHash](https://131002.net/siphash/) MAC, but:
+//!
+//! * SipHash was designed to work on 64-bit words, Chaskey on 32-bit
+//!   words;
+//! * SipHash produces 64-bit tags, Chaskey 128 bits (or fewer, by
+//!   truncating the tags).
+//!
+//! This crate supports three published variants of Chaskey:
 //!
 //! 1. The original (8-round) algorithm (our `Chaskey` type);
 //! 2. The 12-round variant Chaskey-12 (our `Chaskey12` type);
 //! 3. The 16-round variant Chaskey-LTS (our `ChaskeyLts` type).
 //!
 //! Variants are selected by the type parameter given to the
-//! `Digester` type.
+//! `Digester` type.  The 8-round and 12-round variants are tested
+//! with the official test vectors.  I have not found test vectors for
+//! Chaskey-LTS, but the implementation here is not wholly untested
+//! and is likely correct as well.
 //!
 //! ## Disclaimer
 //! 
