@@ -1,4 +1,10 @@
-//! The block cipher variant of Chaskey.  **Experimental.**
+//! The Chaskey block cipher.  The Chaskey MAC is, conceptually,
+//! constructed in terms of this cipher.
+//!
+//! ## Disclaimer
+//!
+//! **This code has not been reviewed for security.  Use at your own
+//! risk.**
 //!
 //! ## References
 //!
