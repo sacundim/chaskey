@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-0' class='srclink' href='../src/chaskey/src/lib.rs.html#1-477' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-0' class='srclink' href='../src/chaskey/src/lib.rs.html#1-481' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>The <a href="http://mouha.be/chaskey/">Chaskey</a> lightweight message
 authentication code (MAC).</p>
 
@@ -71,14 +71,17 @@ truncating the tags).</li>
 </ol>
 
 <p>Variants are selected by the type parameter given to the
-<code>Digester</code> type.  The 8-round and 12-round variants are tested
-with the official test vectors.  I have not found test vectors for
-Chaskey-LTS, but the implementation here is not wholly untested
-and is likely correct as well.</p>
+<code>Digester</code> type.  </p>
 
 <h2 id='disclaimer' class='section-header'><a href='#disclaimer'>Disclaimer</a></h2>
 <p>While Chaskey is a cryptographic algorithm, <strong>this implementation
 has not been reviewed for security</strong>.  Use at your own risk.</p>
+
+<h2 id='correctness' class='section-header'><a href='#correctness'>Correctness</a></h2>
+<p>The 8-round and 12-round MACs variants are tested with the
+official test vectors.  I have not found test vectors for the
+Chaskey-LTS MAC, but the FELICS project has some for its
+underlying <strong>block cipher</strong>, which I do verify.</p>
 
 <h2 id='examples' class='section-header'><a href='#examples'>Examples</a></h2>
 <p>Using the basic (8 round) Chaskey variant:</p>
