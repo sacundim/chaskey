@@ -519,6 +519,7 @@
 <span id="475">475</span>
 <span id="476">476</span>
 <span id="477">477</span>
+<span id="478">478</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! The [Chaskey](http://mouha.be/chaskey/) lightweight message</span>
 <span class='doccomment'>//! authentication code (MAC).</span>
@@ -679,7 +680,7 @@
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// **WARNING:** This is a wrapper around an `[u32; 4]` in order to</span>
 <span class='doccomment'>/// provide constant-time equality comparisons.  You may unwrap it if</span>
-<span class='doccomment'>/// you like, but you need to be very careful what you do with, or</span>
+<span class='doccomment'>/// you like, but you need to be very careful what you do with it, or</span>
 <span class='doccomment'>/// otherwise you may risk a [timing</span>
 <span class='doccomment'>/// attack](https://en.wikipedia.org/wiki/Timing_attack)!</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
@@ -752,7 +753,8 @@
 
 <span class='doccomment'>/// An incremental Chaskey digester.  This is a `Hasher` so you can</span>
 <span class='doccomment'>/// interact with it as you would do with one of them.  Additionally</span>
-<span class='doccomment'>/// you may use the `finish_128` method to get a full 128-bit tag.</span>
+<span class='doccomment'>/// you may use `Digester`&#39;s own `finish` method to get a full 128-bit</span>
+<span class='doccomment'>/// `Tag`.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Digester</span><span class='op'>&lt;</span><span class='ident'>P</span><span class='op'>&gt;</span> {
     <span class='ident'>permutation</span>: <span class='ident'>PhantomData</span><span class='op'>&lt;</span><span class='ident'>P</span><span class='op'>&gt;</span>,
       <span class='ident'>keys</span>: <span class='ident'>Keys</span>,

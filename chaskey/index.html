@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-0' class='srclink' href='../src/chaskey/src/lib.rs.html#1-476' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-0' class='srclink' href='../src/chaskey/src/lib.rs.html#1-477' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>The <a href="http://mouha.be/chaskey/">Chaskey</a> lightweight message
 authentication code (MAC).</p>
 
@@ -195,7 +195,8 @@ accessed May 2016.</li>
                            <td class='docblock short'>
                                 <p>An incremental Chaskey digester.  This is a <code>Hasher</code> so you can
 interact with it as you would do with one of them.  Additionally
-you may use the <code>finish_128</code> method to get a full 128-bit tag.</p>
+you may use <code>Digester</code>&#39;s own <code>finish</code> method to get a full 128-bit
+<code>Tag</code>.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
