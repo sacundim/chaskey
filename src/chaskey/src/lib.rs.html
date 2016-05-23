@@ -473,6 +473,52 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! The [Chaskey](http://mouha.be/chaskey/) lightweight message</span>
 <span class='doccomment'>//! authentication code (MAC).</span>
@@ -505,13 +551,15 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! ## Examples</span>
 <span class='doccomment'>//!</span>
+<span class='doccomment'>//! Using the basic (8 round) Chaskey variant:</span>
+<span class='doccomment'>//!</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//! # extern crate chaskey;</span>
 <span class='doccomment'>//! # extern crate rand;</span>
-<span class='doccomment'>//! # extern crate rustc_serialize as serialize;</span>
+<span class='doccomment'>//! # extern crate rustc_serialize;</span>
 <span class='doccomment'>//! use chaskey::{Digester, Chaskey, Tag};</span>
 <span class='doccomment'>//! use rand::{Rng, OsRng};</span>
-<span class='doccomment'>//! use serialize::hex::ToHex;</span>
+<span class='doccomment'>//! use rustc_serialize::hex::ToHex;</span>
 <span class='doccomment'>//! </span>
 <span class='doccomment'>//! # fn main() {</span>
 <span class='doccomment'>//! let mut rng: OsRng = OsRng::new().unwrap();</span>
@@ -543,6 +591,50 @@
 <span class='doccomment'>//! // timing attacks.  Tread carefully!</span>
 <span class='doccomment'>//! assert!(tag1 == tag2);</span>
 <span class='doccomment'>//! assert!(tag2 != tag3);</span>
+<span class='doccomment'>//! # }</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! To use the Chaskey-12 or Chaskey-LTS variants you just change the type</span>
+<span class='doccomment'>//! parameter to the `Digester`:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//! # extern crate chaskey;</span>
+<span class='doccomment'>//! # extern crate rand;</span>
+<span class='doccomment'>//! # extern crate rustc_serialize;</span>
+<span class='doccomment'>//! use chaskey::{Digester, Chaskey, Chaskey12, ChaskeyLTS, Tag};</span>
+<span class='doccomment'>//! use rand::{Rng, OsRng};</span>
+<span class='doccomment'>//! use rustc_serialize::hex::ToHex;</span>
+<span class='doccomment'>//! </span>
+<span class='doccomment'>//! # fn main() {</span>
+<span class='doccomment'>//! let mut rng: OsRng = OsRng::new().unwrap();</span>
+<span class='doccomment'>//! let key: [u32; 4] = rng.gen();</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let tag1: Tag = {</span>
+<span class='doccomment'>//!     // Note the `Chaskey` type parameter here:</span>
+<span class='doccomment'>//!     let mut mac: Digester&lt;Chaskey&gt; = Digester::new(key);</span>
+<span class='doccomment'>//!     mac.write(&quot;Hello world!&quot;.as_bytes());</span>
+<span class='doccomment'>//!     mac.finish()</span>
+<span class='doccomment'>//! };</span>
+<span class='doccomment'>//! println!(&quot;tag1 = {}&quot;, tag1.to_hex());</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let tag2: Tag = {</span>
+<span class='doccomment'>//!     // Note the `Chaskey12` type parameter here:</span>
+<span class='doccomment'>//!     let mut mac: Digester&lt;Chaskey12&gt; = Digester::new(key);</span>
+<span class='doccomment'>//!     mac.write(&quot;Hello world!&quot;.as_bytes());</span>
+<span class='doccomment'>//!     mac.finish()</span>
+<span class='doccomment'>//! };</span>
+<span class='doccomment'>//! println!(&quot;tag2 = {}&quot;, tag2.to_hex());</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! let tag3: Tag = {</span>
+<span class='doccomment'>//!     // Note the `ChaskeyLTS` type parameter here:</span>
+<span class='doccomment'>//!     let mut mac: Digester&lt;ChaskeyLTS&gt; = Digester::new(key);</span>
+<span class='doccomment'>//!     mac.write(&quot;Hello world!&quot;.as_bytes());</span>
+<span class='doccomment'>//!     mac.finish()</span>
+<span class='doccomment'>//! };</span>
+<span class='doccomment'>//! println!(&quot;tag3 = {}&quot;, tag3.to_hex());</span>
+<span class='doccomment'>//! # assert!(tag1 != tag2);</span>
+<span class='doccomment'>//! # assert!(tag1 != tag3);</span>
+<span class='doccomment'>//! # assert!(tag2 != tag3);</span>
 <span class='doccomment'>//! # }</span>
 <span class='doccomment'>//! ```</span>
 <span class='doccomment'>//!</span>
